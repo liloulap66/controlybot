@@ -92,6 +92,7 @@ class DiscordBotManager {
         this.botStatusBtn = document.getElementById('botStatusBtn');
         this.exportBtn = document.getElementById('exportBtn');
         this.settingsBtn = document.getElementById('settingsBtn');
+        this.checkUpdatesBtn = document.getElementById('checkUpdatesBtn');
         this.toggleAutoRefreshBtn = document.getElementById('toggleAutoRefreshBtn');
         
         // Auto-response elements
@@ -223,6 +224,7 @@ class DiscordBotManager {
         this.botStatusBtn.addEventListener('click', () => this.showBotStatus());
         this.exportBtn.addEventListener('click', () => this.exportLogs());
         this.settingsBtn.addEventListener('click', () => this.showSettings());
+        this.checkUpdatesBtn.addEventListener('click', () => this.checkForUpdates());
         this.toggleAutoRefreshBtn.addEventListener('click', () => this.toggleAutoRefresh());
         
         // Auto-response events
@@ -2186,22 +2188,70 @@ class DiscordBotManager {
         window.api.closeWindow();
     }
 
+    async checkForUpdates() {
+        try {
+            this.checkUpdatesBtn.disabled = true;
+            this.checkUpdatesBtn.textContent = 'Vérification...';
+            
+            const result = await window.electronAPI.checkForUpdates();
+            
+            if (result.success) {
+                if (result.available) {
+                    this.showInfo('Mise à jour disponible! Téléchargement automatique...');
+                } else {
+                    this.showSuccess('Application à jour!');
+                }
+            } else {
+                this.showError(`Erreur lors de la vérification: ${result.error}`);
+            }
+        } catch (error) {
+            this.showError(`Erreur lors de la vérification: ${error.message}`);
+        } finally {
+            this.checkUpdatesBtn.disabled = false;
+            this.checkUpdatesBtn.textContent = 'Vérifier les mises à jour';
+        }
+    }
+
     setupUpdateListeners() {
         // Écouter les mises à jour disponibles
-        window.electronAPI.onUpdateAvailable((event) => {
-            this.showUpdateNotification();
+        window.electronAPI.onUpdateAvailable((event, data) => {
+            this.showUpdateNotification(data);
+        });
+
+        // Écouter l'absence de mise à jour
+        window.electronAPI.onUpdateNotAvailable((event, data) => {
+            this.showInfo(`Application à jour: version ${data.version}`);
+        });
+
+        // Écouter les erreurs de mise à jour
+        window.electronAPI.onUpdateError((event, data) => {
+            this.showError(`Erreur de mise à jour: ${data.message}`);
+        });
+
+        // Écouter la progression du téléchargement
+        window.electronAPI.onDownloadProgress((event, data) => {
+            this.updateDownloadProgress(data);
+        });
+
+        // Écouter la fin du téléchargement
+        window.electronAPI.onUpdateDownloaded((event, data) => {
+            this.showUpdateDownloadedNotification(data);
         });
     }
 
-    showUpdateNotification() {
+    showUpdateNotification(updateData) {
         const notification = document.createElement('div');
         notification.className = 'update-notification';
         notification.innerHTML = `
             <div class="update-content">
-                <span>Une mise à jour est disponible !</span>
+                <div class="update-info">
+                    <span class="update-title">Mise à jour disponible!</span>
+                    <span class="update-version">Version ${updateData.version}</span>
+                    ${updateData.releaseNotes ? `<span class="update-notes">${updateData.releaseNotes}</span>` : ''}
+                </div>
                 <div class="update-buttons">
-                    <button class="update-btn" id="installUpdateBtn">Installer</button>
-                    <button class="update-btn later" id="laterUpdateBtn">Plus tard</button>
+                    <button class="update-btn primary" id="downloadUpdateBtn">Télécharger</button>
+                    <button class="update-btn secondary" id="laterUpdateBtn">Plus tard</button>
                 </div>
             </div>
         `;
@@ -2209,6 +2259,105 @@ class DiscordBotManager {
         document.body.appendChild(notification);
         
         // Ajouter les styles si nécessaire
+        this.addUpdateStyles();
+        
+        // Ajouter les événements
+        document.getElementById('downloadUpdateBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('downloadUpdateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Téléchargement...';
+            
+            try {
+                const result = await window.electronAPI.downloadUpdate();
+                if (!result.success) {
+                    this.showError(`Erreur de téléchargement: ${result.error}`);
+                    btn.disabled = false;
+                    btn.textContent = 'Télécharger';
+                }
+            } catch (error) {
+                this.showError(`Erreur de téléchargement: ${error.message}`);
+                btn.disabled = false;
+                btn.textContent = 'Télécharger';
+            }
+        });
+        
+        document.getElementById('laterUpdateBtn').addEventListener('click', () => {
+            notification.remove();
+        });
+        
+        // Auto-suppression après 15 secondes
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 15000);
+    }
+
+    updateDownloadProgress(progressData) {
+        let progressBar = document.querySelector('.update-progress-bar');
+        let progressText = document.querySelector('.update-progress-text');
+        
+        if (!progressBar) {
+            const notification = document.querySelector('.update-notification');
+            if (notification) {
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'update-progress-container';
+                progressContainer.innerHTML = `
+                    <div class="update-progress-bar">
+                        <div class="update-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="update-progress-text">0%</div>
+                `;
+                
+                notification.querySelector('.update-content').appendChild(progressContainer);
+                progressBar = progressContainer.querySelector('.update-progress-fill');
+                progressText = progressContainer.querySelector('.update-progress-text');
+            }
+        }
+        
+        if (progressBar && progressText) {
+            const percent = Math.round(progressData.percent);
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}% (${this.formatBytes(progressData.transferred)} / ${this.formatBytes(progressData.total)})`;
+        }
+    }
+
+    showUpdateDownloadedNotification(updateData) {
+        const notification = document.createElement('div');
+        notification.className = 'update-notification downloaded';
+        notification.innerHTML = `
+            <div class="update-content">
+                <div class="update-info">
+                    <span class="update-title">Mise à jour téléchargée!</span>
+                    <span class="update-version">Version ${updateData.version}</span>
+                    <span class="update-message">Redémarrez l'application pour installer</span>
+                </div>
+                <div class="update-buttons">
+                    <button class="update-btn primary" id="installUpdateBtn">Installer et redémarrer</button>
+                    <button class="update-btn secondary" id="restartLaterBtn">Plus tard</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        this.addUpdateStyles();
+        
+        document.getElementById('installUpdateBtn').addEventListener('click', async () => {
+            try {
+                await window.electronAPI.installUpdate();
+            } catch (error) {
+                this.showError(`Erreur lors de l'installation: ${error.message}`);
+            }
+        });
+        
+        document.getElementById('restartLaterBtn').addEventListener('click', () => {
+            notification.remove();
+        });
+        
+        // Ne pas auto-supprimer cette notification
+    }
+
+    addUpdateStyles() {
         if (!document.querySelector('#update-styles')) {
             const style = document.createElement('style');
             style.id = 'update-styles';
@@ -2219,17 +2368,44 @@ class DiscordBotManager {
                     right: 20px;
                     background: linear-gradient(135deg, #5865F2, #7289DA);
                     color: white;
-                    padding: 15px 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                    padding: 20px;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
                     z-index: 10000;
                     animation: slideIn 0.3s ease-out;
+                    max-width: 400px;
+                    backdrop-filter: blur(10px);
+                }
+                
+                .update-notification.downloaded {
+                    background: linear-gradient(135deg, #43B581, #3BA55C);
                 }
                 
                 .update-content {
                     display: flex;
-                    align-items: center;
+                    flex-direction: column;
                     gap: 15px;
+                }
+                
+                .update-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                }
+                
+                .update-title {
+                    font-weight: 600;
+                    font-size: 16px;
+                }
+                
+                .update-version {
+                    font-size: 14px;
+                    opacity: 0.9;
+                }
+                
+                .update-notes, .update-message {
+                    font-size: 12px;
+                    opacity: 0.8;
                 }
                 
                 .update-buttons {
@@ -2241,20 +2417,59 @@ class DiscordBotManager {
                     background: rgba(255, 255, 255, 0.2);
                     border: 1px solid rgba(255, 255, 255, 0.3);
                     color: white;
-                    padding: 6px 12px;
-                    border-radius: 4px;
+                    padding: 8px 16px;
+                    border-radius: 6px;
                     cursor: pointer;
-                    font-size: 12px;
+                    font-size: 13px;
                     transition: all 0.2s;
+                    font-weight: 500;
                 }
                 
-                .update-btn:hover {
+                .update-btn:hover:not(:disabled) {
                     background: rgba(255, 255, 255, 0.3);
+                    transform: translateY(-1px);
                 }
                 
-                .update-btn.later {
+                .update-btn:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                
+                .update-btn.primary {
+                    background: rgba(255, 255, 255, 0.25);
+                    border-color: rgba(255, 255, 255, 0.4);
+                }
+                
+                .update-btn.secondary {
                     background: transparent;
                     border-color: rgba(255, 255, 255, 0.5);
+                }
+                
+                .update-progress-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                
+                .update-progress-bar {
+                    width: 100%;
+                    height: 6px;
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 3px;
+                    overflow: hidden;
+                }
+                
+                .update-progress-fill {
+                    height: 100%;
+                    background: linear-gradient(90deg, #fff, rgba(255, 255, 255, 0.8));
+                    border-radius: 3px;
+                    transition: width 0.3s ease;
+                }
+                
+                .update-progress-text {
+                    font-size: 11px;
+                    opacity: 0.8;
+                    text-align: center;
                 }
                 
                 @keyframes slideIn {
@@ -2270,22 +2485,14 @@ class DiscordBotManager {
             `;
             document.head.appendChild(style);
         }
-        
-        // Ajouter les événements
-        document.getElementById('installUpdateBtn').addEventListener('click', () => {
-            window.electronAPI.installUpdate();
-        });
-        
-        document.getElementById('laterUpdateBtn').addEventListener('click', () => {
-            notification.remove();
-        });
-        
-        // Auto-suppression après 10 secondes
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 10000);
+    }
+
+    formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 }
 

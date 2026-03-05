@@ -12,6 +12,16 @@ let messageListeners = [];
 log.transports.file.level = 'info';
 autoUpdater.logger = log;
 
+// Configuration pour le développement et la production
+if (process.env.NODE_ENV === 'development') {
+    autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml');
+    autoUpdater.checkForUpdatesAndNotify();
+}
+
+// Désactiver la vérification automatique au démarrage pour le moment
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
+
 // Événements de l'auto-update
 autoUpdater.on('checking-for-update', () => {
     log.info('Vérification des mises à jour...');
@@ -19,24 +29,53 @@ autoUpdater.on('checking-for-update', () => {
 
 autoUpdater.on('update-available', (info) => {
     log.info('Mise à jour disponible:', info.version);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-available', {
+            version: info.version,
+            releaseNotes: info.releaseNotes,
+            releaseDate: info.releaseDate
+        });
+    }
 });
 
 autoUpdater.on('update-not-available', (info) => {
-    log.info('Pas de mise à jour disponible');
+    log.info('Pas de mise à jour disponible - version actuelle:', info.version);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-not-available', {
+            version: info.version
+        });
+    }
 });
 
 autoUpdater.on('error', (err) => {
     log.error('Erreur lors de la mise à jour:', err);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-error', {
+            message: err.message,
+            stack: err.stack
+        });
+    }
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
     let log_message = "Téléchargement: " + Math.round(progressObj.percent) + "%";
     log.info(log_message);
+    if (mainWindow) {
+        mainWindow.webContents.send('download-progress', {
+            percent: progressObj.percent,
+            transferred: progressObj.transferred,
+            total: progressObj.total
+        });
+    }
 });
 
 autoUpdater.on('update-downloaded', (info) => {
-    log.info('Mise à jour téléchargée');
-    mainWindow?.webContents.send('update-available');
+    log.info('Mise à jour téléchargée:', info.version);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-downloaded', {
+            version: info.version
+        });
+    }
 });
 
 function createWindow() {
@@ -904,10 +943,43 @@ ipcMain.handle('get-bot-status', async () => {
 });
 
 // Handlers pour l'auto-update
-ipcMain.handle('install-update', () => {
-    autoUpdater.quitAndInstall();
+ipcMain.handle('install-update', async () => {
+    try {
+        log.info('Installation de la mise à jour...');
+        autoUpdater.quitAndInstall(false, true);
+        return { success: true };
+    } catch (error) {
+        log.error('Erreur lors de l\'installation de la mise à jour:', error);
+        return { success: false, error: error.message };
+    }
 });
 
-ipcMain.handle('check-for-updates', () => {
-    autoUpdater.checkForUpdatesAndNotify();
+ipcMain.handle('check-for-updates', async () => {
+    try {
+        log.info('Vérification manuelle des mises à jour...');
+        const result = await autoUpdater.checkForUpdatesAndNotify();
+        return { 
+            success: true, 
+            updateInfo: result.updateInfo,
+            available: result.updateInfo && result.updateInfo.version !== app.getVersion()
+        };
+    } catch (error) {
+        log.error('Erreur lors de la vérification des mises à jour:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('download-update', async () => {
+    try {
+        log.info('Téléchargement de la mise à jour...');
+        await autoUpdater.downloadUpdate();
+        return { success: true };
+    } catch (error) {
+        log.error('Erreur lors du téléchargement de la mise à jour:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('get-app-version', () => {
+    return { version: app.getVersion() };
 });
