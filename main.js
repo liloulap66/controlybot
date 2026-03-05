@@ -1045,3 +1045,65 @@ ipcMain.handle('download-update', async () => {
 ipcMain.handle('get-app-version', () => {
     return { version: app.getVersion() };
 });
+
+// Storage handlers
+let store;
+
+// Initialize electron-store using dynamic import
+async function initializeStore() {
+    try {
+        const { default: Store } = await import('electron-store');
+        store = new Store();
+    } catch (error) {
+        console.error('Error initializing electron-store:', error);
+        // Fallback to simple in-memory storage
+        store = {
+            data: {},
+            set(key, value) { this.data[key] = value; },
+            get(key) { return this.data[key]; },
+            delete(key) { delete this.data[key]; }
+        };
+    }
+}
+
+// Initialize store immediately
+initializeStore();
+
+ipcMain.handle('set-storage-data', (event, key, value) => {
+    try {
+        if (!store) {
+            throw new Error('Store not initialized');
+        }
+        store.set(key, value);
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving data:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('get-storage-data', (event, key) => {
+    try {
+        if (!store) {
+            throw new Error('Store not initialized');
+        }
+        const value = store.get(key);
+        return { success: true, value };
+    } catch (error) {
+        console.error('Error getting data:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('remove-storage-data', (event, key) => {
+    try {
+        if (!store) {
+            throw new Error('Store not initialized');
+        }
+        store.delete(key);
+        return { success: true };
+    } catch (error) {
+        console.error('Error removing data:', error);
+        return { success: false, error: error.message };
+    }
+});

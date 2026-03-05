@@ -376,7 +376,7 @@ class DiscordBotManager {
             
             if (result.success) {
                 // Save token for auto-reconnect
-                this.saveBotToken(token);
+                await this.saveBotToken(token);
                 this.hideConnectionModal();
                 this.updateConnectionStatus({ connected: true, user: { tag: result.user } });
                 this.showSuccess('Bot connecté avec succès!');
@@ -395,7 +395,7 @@ class DiscordBotManager {
             const result = await window.electronAPI.disconnectBot();
             if (result.success) {
                 // Clear saved token
-                this.clearSavedToken();
+                await this.clearSavedToken();
                 this.updateConnectionStatus({ connected: false });
                 this.clearAllData();
                 this.showSuccess('Bot déconnecté');
@@ -1965,20 +1965,40 @@ class DiscordBotManager {
     }
 
     // Token Management Methods
-    saveBotToken(token) {
-        localStorage.setItem('botToken', token);
+    async saveBotToken(token) {
+        try {
+            const result = await window.electronAPI.setStorageData('botToken', token);
+            if (!result.success) {
+                console.error('Error saving token:', result.error);
+            }
+        } catch (error) {
+            console.error('Error saving token:', error);
+        }
     }
 
-    getSavedToken() {
-        return localStorage.getItem('botToken');
+    async getSavedToken() {
+        try {
+            const result = await window.electronAPI.getStorageData('botToken');
+            return result.success ? result.value : null;
+        } catch (error) {
+            console.error('Error getting saved token:', error);
+            return null;
+        }
     }
 
-    clearSavedToken() {
-        localStorage.removeItem('botToken');
+    async clearSavedToken() {
+        try {
+            const result = await window.electronAPI.removeStorageData('botToken');
+            if (!result.success) {
+                console.error('Error clearing token:', result.error);
+            }
+        } catch (error) {
+            console.error('Error clearing token:', error);
+        }
     }
 
     async tryAutoConnect() {
-        const savedToken = this.getSavedToken();
+        const savedToken = await this.getSavedToken();
         if (savedToken) {
             this.showLoading(true);
             this.showInfo('Tentative de reconnexion automatique...');
@@ -1991,12 +2011,12 @@ class DiscordBotManager {
                     this.showSuccess('Bot reconnecté automatiquement!');
                 } else {
                     // Clear invalid token
-                    this.clearSavedToken();
+                    await this.clearSavedToken();
                     this.showError(`Erreur de reconnexion automatique: ${result.error}`);
                 }
             } catch (error) {
                 // Clear invalid token
-                this.clearSavedToken();
+                await this.clearSavedToken();
                 this.showError(`Erreur de reconnexion automatique: ${error.message}`);
             } finally {
                 this.showLoading(false);

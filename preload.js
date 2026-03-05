@@ -58,5 +58,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdateNotAvailable: (callback) => ipcRenderer.on('update-not-available', callback),
     onUpdateError: (callback) => ipcRenderer.on('update-error', callback),
     onDownloadProgress: (callback) => ipcRenderer.on('download-progress', callback),
-    onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', callback)
+    onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', callback),
+    
+    // Storage methods
+    setStorageData: (key, value) => ipcRenderer.invoke('set-storage-data', key, value),
+    getStorageData: (key) => ipcRenderer.invoke('get-storage-data', key),
+    removeStorageData: (key) => ipcRenderer.invoke('remove-storage-data', key)
 });
