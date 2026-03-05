@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build": "electron-builder"
+    "build": "electron-builder --publish=never",
+    "build:github": "electron-builder --publish=always"
   },
   "keywords": [
     "discord",
