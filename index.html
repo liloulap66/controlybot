@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>controlybot</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Whitney:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Custom Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-left">
+            <div class="title-bar-icon">
+                <svg width="16" height="16" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="18" fill="#5865F2"/>
+                    <path d="M20 8C13.372 8 8 13.372 8 20s5.372 12 12 12 12-5.372 12-12S26.628 8 20 8zm0 20c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z" fill="white"/>
+                </svg>
+            </div>
+            <span class="title-bar-title">controlybot</span>
+        </div>
+        <div class="title-bar-right">
+            <button class="title-bar-btn" id="minimizeBtn" title="Minimiser">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="2" y="5" width="8" height="2" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="title-bar-btn" id="maximizeBtn" title="Agrandir">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </button>
+            <button class="title-bar-btn close-btn" id="closeBtn" title="Fermer">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 40 40">
+                        <circle cx="20" cy="20" r="18" fill="#5865F2"/>
+                        <path d="M20 8C13.372 8 8 13.372 8 20s5.372 12 12 12 12-5.372 12-12S26.628 8 20 8zm0 20c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z" fill="white"/>
+                    </svg>
+                    <span>controlybot</span>
+                </div>
+            </div>
+            
+            <div class="connection-status">
+                <div class="status-indicator" id="statusIndicator">
+                    <div class="status-dot offline"></div>
+                    <span id="statusText">Déconnecté</span>
+                </div>
+            </div>
+
+            <div class="server-list" id="serverList">
+                <!-- Servers will be populated here -->
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="connect-btn" id="connectBtn">Connexion</button>
+            </div>
+        </div>
+        
+        <!-- Channel Panel -->
+        <div class="channel-panel">
+            <div class="channel-header">
+                <h3 id="serverName">Sélectionnez un serveur</h3>
+                <button class="create-channel-btn" id="createChannelBtn" title="Créer un canal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="channel-list" id="channelList">
+                <!-- Channels will be populated here -->
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="chat-header">
+                <div class="channel-info">
+                    <span class="channel-name" id="channelName"># général</span>
+                    <span class="channel-topic" id="channelTopic">Bienvenue sur le bot manager</span>
+                </div>
+                <div class="chat-controls">
+                    <button class="control-btn" id="refreshBtn" title="Rafraîchir">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="welcome-message">
+                    <div class="welcome-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                    <h3>Bienvenue sur controlybot</h3>
+                    <p>Connectez votre bot pour commencer à gérer vos serveurs Discord</p>
+                </div>
+            </div>
+
+            <div class="message-input-container">
+                <div class="message-input-wrapper">
+                    <input 
+                        type="text" 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Message #général"
+                        disabled
+                    >
+                    <button class="embed-btn" id="embedBtn" title="Ajouter un embed">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                    </button>
+                    <button class="send-btn" id="sendBtn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="panel-header">
+                <h3>Actions Rapides</h3>
+            </div>
+            <div class="panel-content">
+                <div class="action-section">
+                    <h4>Messages</h4>
+                    <button class="action-btn" id="clearMessagesBtn">Supprimer tous les messages</button>
+                    <button class="action-btn" id="bulkDeleteBtn">Suppression en masse</button>
+                    <button class="action-btn" id="toggleAutoRefreshBtn">Auto-refresh: ON</button>
+                </div>
+                
+                <div class="action-section">
+                    <h4>Réponses Automatiques</h4>
+                    <button class="action-btn" id="manageResponsesBtn">Gérer les réponses</button>
+                    <button class="action-btn" id="quickResponsesBtn">Réponses rapides</button>
+                    <button class="action-btn" id="toggleAutoResponsesBtn">Auto-réponses: ON</button>
+                </div>
+                
+                <div class="action-section">
+                    <h4>Bot</h4>
+                    <button class="action-btn" id="botInfoBtn">Informations du bot</button>
+                    <button class="action-btn" id="botStatusBtn">Statut du bot</button>
+                </div>
+                
+                <div class="action-section">
+                    <h4>Utilitaires</h4>
+                    <button class="action-btn" id="exportBtn">Exporter les logs</button>
+                    <button class="action-btn" id="settingsBtn">Paramètres</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Modal -->
+    <div class="modal" id="connectionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Connexion du Bot Discord</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="botToken">Token du Bot</label>
+                    <input 
+                        type="password" 
+                        id="botToken" 
+                        placeholder="Collez votre token de bot ici"
+                        class="token-input"
+                    >
+                    <small class="help-text">
+                        Votre token est confidentiel. Ne le partagez avec personne.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelBtn">Annuler</button>
+                <button class="btn btn-primary" id="confirmConnectBtn">Se connecter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Connexion en cours...</p>
+    </div>
+
+    <!-- Auto-Responses Modal -->
+    <div class="modal" id="responsesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Gestion des Réponses Automatiques</h2>
+                <button class="close-btn" id="closeResponsesModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="responses-list" id="responsesList">
+                    <!-- Auto-responses will be populated here -->
+                </div>
+                <button class="btn btn-primary" id="addResponseBtn">Ajouter une réponse</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Response Modal -->
+    <div class="modal" id="responseFormModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="responseFormTitle">Ajouter une réponse automatique</h2>
+                <button class="close-btn" id="closeResponseFormModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="responseTrigger">Déclencheur</label>
+                    <input type="text" id="responseTrigger" placeholder="Mot ou phrase qui déclenche la réponse">
+                </div>
+                <div class="form-group">
+                    <label for="triggerType">Type de déclencheur</label>
+                    <select id="triggerType">
+                        <option value="contains">Contient</option>
+                        <option value="startsWith">Commence par</option>
+                        <option value="endsWith">Finit par</option>
+                        <option value="exact">Exact</option>
+                        <option value="regex">Expression régulière</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="responseText">Réponse</label>
+                    <label for="responseType">Type de réponse</label>
+                    <select id="responseType">
+                        <option value="reply">Répondre au message</option>
+                        <option value="channel">Message dans le canal</option>
+                        <option value="dm">Message privé</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="isEmbedResponse">
+                        Utiliser un embed
+                    </label>
+                </div>
+                <div id="embedResponseFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="responseEmbedTitle">Titre de l'embed</label>
+                        <input type="text" id="responseEmbedTitle" placeholder="Titre de l'embed">
+                    </div>
+                    <div class="form-group">
+                        <label for="responseEmbedDescription">Description de l'embed</label>
+                        <textarea id="responseEmbedDescription" placeholder="Description de l'embed" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="responseEmbedColor">Couleur de l'embed</label>
+                        <input type="color" id="responseEmbedColor" value="#5865F2">
+                    </div>
+                    <div class="form-group">
+                        <label for="responseEmbedAuthor">Auteur de l'embed</label>
+                        <input type="text" id="responseEmbedAuthor" placeholder="Nom de l'auteur">
+                    </div>
+                    <div class="form-group">
+                        <label for="responseEmbedThumbnail">Miniature de l'embed (URL)</label>
+                        <input type="url" id="responseEmbedThumbnail" placeholder="https://example.com/thumbnail.png">
+                    </div>
+                    <div class="form-group">
+                        <label for="responseEmbedImage">Image de l'embed (URL)</label>
+                        <input type="url" id="responseEmbedImage" placeholder="https://example.com/image.png">
+                    </div>
+                    <div class="form-group">
+                        <label for="responseEmbedFooter">Footer de l'embed</label>
+                        <input type="text" id="responseEmbedFooter" placeholder="Texte du footer">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="responseEmbedTimestamp">
+                            Ajouter timestamp
+                        </label>
+                    </div>
+                </div>
+                <div id="textResponseFields">
+                    <div class="form-group">
+                        <label for="responseText">Texte de la réponse</label>
+                        <textarea id="responseText" placeholder="Entrez la réponse automatique" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="responseEnabled" checked>
+                        Activé
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelResponseBtn">Annuler</button>
+                <button class="btn btn-primary" id="saveResponseBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Responses Modal -->
+    <div class="modal" id="quickResponsesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Réponses Rapides</h2>
+                <button class="close-btn" id="closeQuickResponsesModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="quick-responses-grid" id="quickResponsesGrid">
+                    <!-- Quick responses will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Channel Creation Modal -->
+    <div class="modal" id="channelModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Créer un canal</h2>
+                <button class="close-btn" id="closeChannelModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="channelName">Nom du canal</label>
+                    <input type="text" id="channelName" placeholder="nom-du-canal" class="channel-input">
+                </div>
+                <div class="form-group">
+                    <label for="channelType">Type de canal</label>
+                    <select id="channelType">
+                        <option value="text">Texte</option>
+                        <option value="voice">Vocal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="channelTopic">Sujet (optionnel)</label>
+                    <input type="text" id="channelTopic" placeholder="Description du canal">
+                </div>
+                <div class="form-group">
+                    <label for="channelCategory">Catégorie (optionnel)</label>
+                    <select id="channelCategory">
+                        <option value="">Aucune catégorie</option>
+                        <!-- Categories will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="channelNsfw">
+                        NSFW
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelChannelBtn">Annuler</button>
+                <button class="btn btn-primary" id="createChannelSubmitBtn">Créer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embed Builder Modal -->
+    <div class="modal" id="embedModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Créer un Embed</h2>
+                <button class="close-btn" id="closeEmbedModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="embed-controls">
+                    <div class="preset-controls">
+                        <label for="embedPresetSelect">Presets d'embed:</label>
+                        <select id="embedPresetSelect">
+                            <option value="">-- Choisir un preset --</option>
+                        </select>
+                        <button class="btn btn-secondary" id="managePresetsBtn">Gérer les presets</button>
+                        <button class="btn btn-primary" id="saveAsPresetBtn">Sauvegarder comme preset</button>
+                    </div>
+                </div>
+                <div class="embed-preview" id="embedPreview">
+                    <!-- Embed preview will be shown here -->
+                </div>
+                <div class="embed-form">
+                    <div class="form-group">
+                        <label for="embedTitle">Titre</label>
+                        <input type="text" id="embedTitle" placeholder="Titre de l'embed">
+                    </div>
+                    <div class="form-group">
+                        <label for="embedDescription">Description</label>
+                        <textarea id="embedDescription" placeholder="Description de l'embed" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="embedColor">Couleur</label>
+                        <input type="color" id="embedColor" value="#5865F2">
+                    </div>
+                    <div class="form-group">
+                        <label for="embedAuthor">Auteur</label>
+                        <input type="text" id="embedAuthor" placeholder="Nom de l'auteur">
+                    </div>
+                    <div class="form-group">
+                        <label for="embedAuthorIcon">Icône de l'auteur (URL)</label>
+                        <input type="url" id="embedAuthorIcon" placeholder="https://example.com/icon.png">
+                    </div>
+                    <div class="form-group">
+                        <label for="embedThumbnail">Miniature (URL)</label>
+                        <input type="url" id="embedThumbnail" placeholder="https://example.com/thumbnail.png">
+                    </div>
+                    <div class="form-group">
+                        <label for="embedImage">Image (URL)</label>
+                        <input type="url" id="embedImage" placeholder="https://example.com/image.png">
+                    </div>
+                    <div class="form-group">
+                        <label for="embedFooter">Footer</label>
+                        <input type="text" id="embedFooter" placeholder="Texte du footer">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="embedTimestamp">
+                            Ajouter timestamp
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelEmbedBtn">Annuler</button>
+                <button class="btn btn-primary" id="sendEmbedBtn">Envoyer l'embed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embed Presets Management Modal -->
+    <div class="modal" id="embedPresetsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Gérer les Presets d'Embed</h2>
+                <button class="close-btn" id="closeEmbedPresetsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="presets-list" id="presetsList">
+                    <!-- Presets will be populated here -->
+                </div>
+                <button class="btn btn-primary" id="addNewPresetBtn">Créer un nouveau preset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embed Preset Form Modal -->
+    <div class="modal" id="embedPresetFormModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="presetFormTitle">Créer un Preset d'Embed</h2>
+                <button class="close-btn" id="closeEmbedPresetFormModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="presetName">Nom du preset</label>
+                    <input type="text" id="presetName" placeholder="Nom du preset" required>
+                </div>
+                <div class="form-group">
+                    <label for="presetDescription">Description (optionnel)</label>
+                    <textarea id="presetDescription" placeholder="Description du preset" rows="2"></textarea>
+                </div>
+                <div class="preset-preview" id="presetPreview">
+                    <!-- Embed preview will be shown here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelPresetBtn">Annuler</button>
+                <button class="btn btn-primary" id="savePresetBtn">Sauvegarder le preset</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
