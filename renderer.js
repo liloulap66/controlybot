@@ -19,6 +19,9 @@ class DiscordBotManager {
         this.loadAutoResponses();
         this.loadEmbedPresets();
         this.setupUpdateListeners();
+        
+        // Attendre que l'interface soit complètement chargée avant la reconnexion auto
+        setTimeout(() => this.tryAutoConnect(), 500);
     }
 
     initializeElements() {
@@ -26,7 +29,6 @@ class DiscordBotManager {
         this.connectBtn = document.getElementById('connectBtn');
         this.statusIndicator = document.getElementById('statusIndicator');
         this.statusText = document.getElementById('statusText');
-        this.statusDot = this.statusIndicator.querySelector('.status-dot');
         
         // Modal elements
         this.connectionModal = document.getElementById('connectionModal');
@@ -135,6 +137,7 @@ class DiscordBotManager {
         this.maximizeBtn = document.getElementById('maximizeBtn');
         this.closeBtn = document.getElementById('closeBtn');
         this.titleBarBotName = document.getElementById('titleBarBotName');
+        this.statusDot = document.getElementById('status-dot');
         
         // Auto-response state
         this.autoResponses = [];
@@ -310,7 +313,6 @@ class DiscordBotManager {
         if (status.connected) {
             this.isConnected = true;
             this.statusDot.className = 'status-dot online';
-            this.statusText.textContent = status.user ? status.user.tag : 'Connecté';
             this.connectBtn.innerHTML = '➜]';
             this.connectBtn.title = 'Déconnecter';
             
@@ -328,7 +330,6 @@ class DiscordBotManager {
         } else {
             this.isConnected = false;
             this.statusDot.className = 'status-dot offline';
-            this.statusText.textContent = 'Déconnecté';
             this.connectBtn.innerHTML = '➕';
             this.connectBtn.title = 'Connecter un bot';
             
@@ -374,6 +375,8 @@ class DiscordBotManager {
             const result = await window.electronAPI.connectBot(token);
             
             if (result.success) {
+                // Save token for auto-reconnect
+                this.saveBotToken(token);
                 this.hideConnectionModal();
                 this.updateConnectionStatus({ connected: true, user: { tag: result.user } });
                 this.showSuccess('Bot connecté avec succès!');
@@ -391,6 +394,8 @@ class DiscordBotManager {
         try {
             const result = await window.electronAPI.disconnectBot();
             if (result.success) {
+                // Clear saved token
+                this.clearSavedToken();
                 this.updateConnectionStatus({ connected: false });
                 this.clearAllData();
                 this.showSuccess('Bot déconnecté');
@@ -1107,7 +1112,7 @@ class DiscordBotManager {
             style.textContent = `
                 .notification {
                     position: fixed;
-                    top: 20px;
+                    top: 40px;
                     right: 20px;
                     max-width: 400px;
                     padding: 16px;
@@ -1957,6 +1962,46 @@ class DiscordBotManager {
 
     saveEmbedPresets() {
         localStorage.setItem('embedPresets', JSON.stringify(this.embedPresets));
+    }
+
+    // Token Management Methods
+    saveBotToken(token) {
+        localStorage.setItem('botToken', token);
+    }
+
+    getSavedToken() {
+        return localStorage.getItem('botToken');
+    }
+
+    clearSavedToken() {
+        localStorage.removeItem('botToken');
+    }
+
+    async tryAutoConnect() {
+        const savedToken = this.getSavedToken();
+        if (savedToken) {
+            this.showLoading(true);
+            this.showInfo('Tentative de reconnexion automatique...');
+            
+            try {
+                const result = await window.electronAPI.connectBot(savedToken);
+                
+                if (result.success) {
+                    this.updateConnectionStatus({ connected: true, user: { tag: result.user } });
+                    this.showSuccess('Bot reconnecté automatiquement!');
+                } else {
+                    // Clear invalid token
+                    this.clearSavedToken();
+                    this.showError(`Erreur de reconnexion automatique: ${result.error}`);
+                }
+            } catch (error) {
+                // Clear invalid token
+                this.clearSavedToken();
+                this.showError(`Erreur de reconnexion automatique: ${error.message}`);
+            } finally {
+                this.showLoading(false);
+            }
+        }
     }
 
     updateEmbedPresetSelect() {

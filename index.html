@@ -20,6 +20,7 @@
             <span class="title-bar-title">controlybot</span>
         </div>
         <div class="title-bar-center">
+            <div class="status-dot offline" id="status-dot"></div>
             <span class="title-bar-bot-name" id="titleBarBotName">Aucun bot connecté</span>
         </div>
         <div class="title-bar-right">
@@ -56,12 +57,15 @@
             
             <div class="connection-status">
                 <div class="status-indicator" id="statusIndicator">
-                    <div class="status-dot offline"></div>
-                    <span id="statusText">Déconnecté</span>
+                    
                 </div>
             </div>
 
             <div class="server-list" id="serverList">
+                <!-- Servers will be populated here -->
+            </div>
+
+            <div class="bot-info" id="botinfo">
                 <!-- Servers will be populated here -->
             </div>
 
