@@ -5,25 +5,15 @@ on:
     tags:
       - "v*"
 
-concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Use system Node.js
-        shell: powershell
         run: |
           node --version
           npm --version
@@ -40,7 +30,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}
+          name: build-ubuntu
           path: dist/**
 
       - name: Create GitHub Release
