@@ -67,7 +67,10 @@
       "icon": "assets/icon.png"
     },
     "linux": {
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.png",
+      "target": [
+        "AppImage"
+      ]
     }
   }
 }
