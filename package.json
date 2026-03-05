@@ -46,13 +46,19 @@
     },
     "win": {
       "icon": "assets/icon.png",
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "compression": "store"
     },
     "mac": {
       "icon": "assets/icon.png"

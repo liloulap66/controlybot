@@ -33,6 +33,7 @@ jobs:
         run: npm install
 
       - name: Build Electron app
+        timeout-minutes: 20
         run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
