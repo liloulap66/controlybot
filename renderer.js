@@ -89,6 +89,7 @@ class DiscordBotManager {
         // Action buttons
         this.clearMessagesBtn = document.getElementById('clearMessagesBtn');
         this.bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+        this.botInfoBtn = document.getElementById('botInfoBtn');
         this.botStatusBtn = document.getElementById('botStatusBtn');
         this.exportBtn = document.getElementById('exportBtn');
         this.settingsBtn = document.getElementById('settingsBtn');
@@ -133,6 +134,7 @@ class DiscordBotManager {
         this.minimizeBtn = document.getElementById('minimizeBtn');
         this.maximizeBtn = document.getElementById('maximizeBtn');
         this.closeBtn = document.getElementById('closeBtn');
+        this.titleBarBotName = document.getElementById('titleBarBotName');
         
         // Auto-response state
         this.autoResponses = [];
@@ -309,8 +311,18 @@ class DiscordBotManager {
             this.isConnected = true;
             this.statusDot.className = 'status-dot online';
             this.statusText.textContent = status.user ? status.user.tag : 'Connecté';
-            this.connectBtn.innerHTML = '🔌';
+            this.connectBtn.innerHTML = '➜]';
             this.connectBtn.title = 'Déconnecter';
+            
+            // Update title bar with bot name
+            if (status.user && status.user.tag) {
+                this.titleBarBotName.textContent = status.user.tag;
+                this.titleBarBotName.classList.add('connected');
+            } else {
+                this.titleBarBotName.textContent = 'Bot connecté';
+                this.titleBarBotName.classList.add('connected');
+            }
+            
             this.enableBotFeatures();
             this.loadGuilds();
         } else {
@@ -319,6 +331,11 @@ class DiscordBotManager {
             this.statusText.textContent = 'Déconnecté';
             this.connectBtn.innerHTML = '➕';
             this.connectBtn.title = 'Connecter un bot';
+            
+            // Reset title bar
+            this.titleBarBotName.textContent = 'Aucun bot connecté';
+            this.titleBarBotName.classList.remove('connected');
+            
             this.disableBotFeatures();
             // Clear auto-refresh when disconnected
             this.clearRefreshInterval();

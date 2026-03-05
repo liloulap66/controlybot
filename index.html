@@ -19,6 +19,9 @@
             </div>
             <span class="title-bar-title">controlybot</span>
         </div>
+        <div class="title-bar-center">
+            <span class="title-bar-bot-name" id="titleBarBotName">Aucun bot connecté</span>
+        </div>
         <div class="title-bar-right">
             <button class="title-bar-btn" id="minimizeBtn" title="Minimiser">
                 <svg width="12" height="12" viewBox="0 0 12 12">
@@ -63,7 +66,7 @@
             </div>
 
             <div class="sidebar-footer">
-                <button class="connect-btn" id="connectBtn">Connexion</button>
+                <button class="connect-btn" id="connectBtn">➥</button>
             </div>
         </div>
         
@@ -129,41 +132,6 @@
                             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                         </svg>
                     </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Panel -->
-        <div class="right-panel">
-            <div class="panel-header">
-                <h3>Actions Rapides</h3>
-            </div>
-            <div class="panel-content">
-                <div class="action-section">
-                    <h4>Messages</h4>
-                    <button class="action-btn" id="clearMessagesBtn">Supprimer tous les messages</button>
-                    <button class="action-btn" id="bulkDeleteBtn">Suppression en masse</button>
-                    <button class="action-btn" id="toggleAutoRefreshBtn">Auto-refresh: ON</button>
-                </div>
-                
-                <div class="action-section">
-                    <h4>Réponses Automatiques</h4>
-                    <button class="action-btn" id="manageResponsesBtn">Gérer les réponses</button>
-                    <button class="action-btn" id="quickResponsesBtn">Réponses rapides</button>
-                    <button class="action-btn" id="toggleAutoResponsesBtn">Auto-réponses: ON</button>
-                </div>
-                
-                <div class="action-section">
-                    <h4>Bot</h4>
-                    <button class="action-btn" id="botInfoBtn">Informations du bot</button>
-                    <button class="action-btn" id="botStatusBtn">Statut du bot</button>
-                </div>
-                
-                <div class="action-section">
-                    <h4>Utilitaires</h4>
-                    <button class="action-btn" id="exportBtn">Exporter les logs</button>
-                    <button class="action-btn" id="settingsBtn">Paramètres</button>
-                    <button class="action-btn" id="checkUpdatesBtn">Vérifier les mises à jour</button>
                 </div>
             </div>
         </div>

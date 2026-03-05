@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
-const { Client, GatewayIntentBits, PermissionFlagsBits, EmbedBuilder, ChannelType } = require('discord.js');
+const { Client, GatewayIntentBits, PermissionFlagsBits, EmbedBuilder, ChannelType, ActivityType } = require('discord.js');
 let mainWindow;
 let discordClient;
 let autoResponses = [];
@@ -154,6 +154,64 @@ function hasPermission(channel, permission) {
     return permissions && permissions.has(permission);
 }
 
+async function convertMentionsToIds(content, guild) {
+    const mentionRegex = /@([a-zA-Z0-9_.]+)/g;
+
+    let result = content;
+    const matches = [...content.matchAll(mentionRegex)];
+
+    for (const match of matches) {
+        const username = match[1];
+
+        const member = guild.members.cache.find(
+            m =>
+                m.user.username.toLowerCase() === username.toLowerCase() ||
+                m.displayName.toLowerCase() === username.toLowerCase()
+        );
+
+        if (member) {
+            result = result.replace(`@${username}`, `<@${member.id}>`);
+        }
+    }
+
+    return result;
+}
+
+async function convertIdsToMentions(content, guild) {
+    const regex = /<@!?(\d+)>/g;
+
+    let result = content;
+    const matches = [...content.matchAll(regex)];
+
+    for (const match of matches) {
+        const userId = match[1];
+
+        try {
+            const member = await guild.members.fetch(userId);
+            result = result.replace(match[0], `@${member.displayName}`);
+        } catch {
+            result = result.replace(match[0], '@unknown');
+        }
+    }
+
+    return result;
+}
+
+function setBotPresence() {
+    if (!discordClient || !discordClient.user) return;
+
+    discordClient.user.setPresence({
+        status: "online",
+        activities: [
+            {
+                name: "Je suis contrôlé avec ControlyBot",
+                type: ActivityType.Streaming,
+                url: "https://www.youtube.com/watch?v=hvL1339luv0"
+            }
+        ]
+    });
+}
+
 // Discord Bot Connection
 ipcMain.handle('connect-bot', async (event, token) => {
     try {
@@ -166,20 +224,20 @@ ipcMain.handle('connect-bot', async (event, token) => {
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.MessageContent,
-                GatewayIntentBits.GuildMessageReactions,
-                GatewayIntentBits.DirectMessages,
-                GatewayIntentBits.DirectMessageTyping,
-                GatewayIntentBits.GuildVoiceStates,
                 GatewayIntentBits.GuildMembers
             ]
         });
 
-        // Set up message event listeners
-        setupMessageListeners();
+        discordClient.once("ready", () => {
+            console.log(`Bot connecté : ${discordClient.user.tag}`);
+
+            setBotPresence();
+        });
 
         await discordClient.login(token);
-        
-        return { success: true, user: discordClient.user.tag };
+
+        return { success: true, user: discordClient.user?.tag };
+
     } catch (error) {
         console.error('Bot connection error:', error);
         return { success: false, error: error.message };
@@ -355,8 +413,12 @@ ipcMain.handle('send-message', async (event, channelId, content) => {
             return { success: false, error: 'Channel not found' };
         }
 
-        const message = await channel.send(content);
+        // Convert @username -> <@userid>
+        const convertedContent = await convertMentionsToIds(content, channel.guild);
+
+        const message = await channel.send(convertedContent);
         return { success: true, messageId: message.id };
+
     } catch (error) {
         console.error('Error sending message:', error);
         return { success: false, error: error.message };
@@ -422,7 +484,7 @@ ipcMain.handle('get-messages', async (event, channelId, limit = 50) => {
         const messages = await channel.messages.fetch({ limit });
         const messageList = await Promise.all(messages.map(async (msg) => ({
             id: msg.id,
-            content: msg.content,
+            content: await convertIdsToMentions(msg.content, msg.guild),
             author: msg.author.tag,
             authorAvatar: msg.author.displayAvatarURL(),
             timestamp: msg.createdTimestamp,

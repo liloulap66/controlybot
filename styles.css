@@ -18,7 +18,7 @@ body {
 /* Custom Title Bar Styles */
 .title-bar {
     height: 32px;
-    background-color: #202225;
+    background-color: #353d49;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -46,6 +46,35 @@ body {
     font-size: 14px;
     font-weight: 600;
     color: #dcddde;
+}
+
+.title-bar-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+.title-bar-bot-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #b9bbbe;
+    padding: 4px 12px;
+    background-color: rgba(88, 101, 242, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(88, 101, 242, 0.3);
+    transition: all 0.2s ease;
+    pointer-events: auto;
+}
+
+.title-bar-bot-name.connected {
+    color: #43b581;
+    background-color: rgba(67, 181, 129, 0.1);
+    border-color: rgba(67, 181, 129, 0.3);
 }
 
 .title-bar-right {
