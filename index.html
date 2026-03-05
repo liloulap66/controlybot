@@ -46,13 +46,12 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
-                    <svg width="40" height="40" viewBox="0 0 40 40">
-                        <circle cx="20" cy="20" r="18" fill="#5865F2"/>
-                        <path d="M20 8C13.372 8 8 13.372 8 20s5.372 12 12 12 12-5.372 12-12S26.628 8 20 8zm0 20c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z" fill="white"/>
+                <button class="logo" id="logo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                     </svg>
                     <span>controlybot</span>
-                </div>
+                </button>
             </div>
             
             <div class="connection-status">
@@ -65,10 +64,6 @@
                 <!-- Servers will be populated here -->
             </div>
 
-            <div class="bot-info" id="botinfo">
-                <!-- Servers will be populated here -->
-            </div>
-
             <div class="sidebar-footer">
                 <button class="connect-btn" id="connectBtn">➥</button>
             </div>
@@ -78,11 +73,13 @@
         <div class="channel-panel">
             <div class="channel-header">
                 <h3 id="serverName">Sélectionnez un serveur</h3>
-                <button class="create-channel-btn" id="createChannelBtn" title="Créer un canal">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                    </svg>
-                </button>
+                <div class="channel-header-buttons">
+                    <button class="create-channel-btn" id="createChannelBtn" title="Créer un canal">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="channel-list" id="channelList">
                 <!-- Channels will be populated here -->

@@ -987,11 +987,15 @@ ipcMain.handle('send-message-with-embed', async (event, channelId, content, embe
 ipcMain.handle('get-bot-status', async () => {
     try {
         if (!discordClient) {
+            console.log('Bot client non initialisé');
             return { connected: false, user: null };
         }
 
+        const isConnected = discordClient.readyTimestamp > 0 && discordClient.user;
+        console.log('Statut du bot - readyTimestamp:', discordClient.readyTimestamp, 'user:', !!discordClient.user, 'isConnected:', isConnected);
+        
         return { 
-            connected: discordClient.status === 0, // Ready
+            connected: isConnected,
             user: discordClient.user ? {
                 tag: discordClient.user.tag,
                 id: discordClient.user.id,

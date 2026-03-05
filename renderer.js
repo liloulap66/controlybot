@@ -38,6 +38,7 @@ class DiscordBotManager {
         this.confirmConnectBtn = document.getElementById('confirmConnectBtn');
         
         // Server and channel elements
+        this.logoBtn = document.getElementById('logo');
         this.serverList = document.getElementById('serverList');
         this.serverName = document.getElementById('serverName');
         this.channelList = document.getElementById('channelList');
@@ -53,6 +54,7 @@ class DiscordBotManager {
         
         // Channel management elements
         this.createChannelBtn = document.getElementById('createChannelBtn');
+        this.inviteBotBtn = document.getElementById('inviteBotBtn');
         this.channelModal = document.getElementById('channelModal');
         this.channelName = document.getElementById('channelName');
         this.channelType = document.getElementById('channelType');
@@ -189,6 +191,7 @@ class DiscordBotManager {
         
         // Channel management events
         this.createChannelBtn.addEventListener('click', () => this.showChannelModal());
+        this.logoBtn.addEventListener('click', () => this.inviteBot());
         document.getElementById('closeChannelModal').addEventListener('click', () => this.hideChannelModal());
         document.getElementById('cancelChannelBtn').addEventListener('click', () => this.hideChannelModal());
         document.getElementById('createChannelSubmitBtn').addEventListener('click', () => this.createChannel());
@@ -404,6 +407,46 @@ class DiscordBotManager {
             }
         } catch (error) {
             this.showError(`Erreur de déconnexion: ${error.message}`);
+        }
+    }
+
+    async inviteBot() {
+        try {
+            console.log('Tentative d\'invitation du bot...');
+            
+            // Get bot status to retrieve bot ID
+            const status = await window.electronAPI.getBotStatus();
+            console.log('Statut du bot:', status);
+            
+            if (!status.connected || !status.user || !status.user.id) {
+                console.log('Bot non connecté ou informations manquantes:', {
+                    connected: status.connected,
+                    hasUser: !!status.user,
+                    hasUserId: !!(status.user && status.user.id)
+                });
+                this.showError('Veuillez connecter un bot avant de générer un lien d\'invitation');
+                return;
+            }
+
+            const botId = status.user.id;
+            console.log('Bot ID récupéré:', botId);
+            
+            // Generate Discord OAuth2 invitation URL with required permissions
+            const permissions = [
+                '8'      // Manage Channels
+            ].join('%20');
+
+            const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${botId}&permissions=${permissions}&integration_type=0&scope=bot%20applications.commands`;
+            console.log('URL d\'invitation générée:', inviteUrl);
+            
+            // Open the invitation URL in the default browser
+            window.open(inviteUrl, '_blank');
+            
+            this.showSuccess('Lien d\'invitation du bot ouvert dans votre navigateur!');
+            
+        } catch (error) {
+            console.error('Error inviting bot:', error);
+            this.showError(`Erreur lors de la génération du lien d'invitation: ${error.message}`);
         }
     }
 

@@ -635,6 +635,36 @@ body {
     margin: 0;
 }
 
+.channel-header-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.invite-bot-btn {
+    background-color: #5865F2;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.17s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.invite-bot-btn:hover {
+    background-color: #4752c4;
+}
+
+.invite-bot-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
 .create-channel-btn {
     background-color: #5865F2;
     border: none;
