@@ -1,6 +1,6 @@
 {
   "name": "controlybot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Discord bot management application with Discord-like UI",
   "main": "main.js",
   "scripts": {
