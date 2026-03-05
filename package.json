@@ -61,8 +61,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "compression": "store"
+      "createStartMenuShortcut": true
     },
     "mac": {
       "icon": "assets/icon.png"
