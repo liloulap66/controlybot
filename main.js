@@ -339,8 +339,8 @@ ipcMain.handle('reply-to-message', async (event, channelId, messageId, content) 
         const originalMessage = await channel.messages.fetch(messageId);
         
         // Create reply with mention
-        const replyContent = `${originalMessage.author} ${content}`;
-        const sentMessage = await channel.send(replyContent);
+        const replyContent = `${content}`;
+        const sentMessage = await originalMessage.reply(replyContent);
         
         return { success: true, messageId: sentMessage.id };
     } catch (error) {
@@ -381,18 +381,19 @@ ipcMain.handle('get-messages', async (event, channelId, limit = 50) => {
         }
 
         const messages = await channel.messages.fetch({ limit });
-        const messageList = messages.map(msg => ({
+        const messageList = await Promise.all(messages.map(async (msg) => ({
             id: msg.id,
             content: msg.content,
             author: msg.author.tag,
             authorAvatar: msg.author.displayAvatarURL(),
             timestamp: msg.createdTimestamp,
+            replyto: msg.reference ? (msg.reference.messageId ? await getMessageReplyContent(msg.reference.messageId, channel) : '') : '',
             attachments: msg.attachments.map(att => ({
                 url: att.url,
                 name: att.name,
                 type: att.contentType
             }))
-        }));
+        })));
 
         return { success: true, messages: messageList };
     } catch (error) {
@@ -400,6 +401,17 @@ ipcMain.handle('get-messages', async (event, channelId, limit = 50) => {
         return { success: false, error: error.message };
     }
 });
+
+// Helper function to get reply message content
+async function getMessageReplyContent(messageId, channel) {
+    try {
+        const repliedMessage = await channel.messages.fetch(messageId);
+        return repliedMessage.author.tag + ': ' + repliedMessage.content;
+    } catch (error) {
+        console.error('Error fetching reply message:', error);
+        return '';
+    }
+}
 
 // Message Listeners Setup
 function setupMessageListeners() {
@@ -423,6 +435,7 @@ function setupMessageListeners() {
                     author: message.author.tag,
                     authorAvatar: message.author.displayAvatarURL(),
                     timestamp: message.createdTimestamp,
+                    replyto: message.reference ? (message.reference.messageId ? await getMessageReplyContent(message.reference.messageId, message.channel) : '') : '',
                     attachments: message.attachments.map(att => ({
                         url: att.url,
                         name: att.name,

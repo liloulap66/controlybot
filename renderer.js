@@ -750,6 +750,7 @@ class DiscordBotManager {
                             hour: '2-digit',
                             minute: '2-digit'
                         }) : new Date().toLocaleString('fr-FR')}</span>
+                        ${message.replyto ? `<span class="message-replyto"> → ${message.replyto}</span>` : ''}
                     </div>
                     <div class="message-text">${this.processMentions(message.content || '')}</div>
                     ${message.attachments && message.attachments.length > 0 ? this.renderAttachments(message.attachments) : ''}
