@@ -507,7 +507,7 @@ ipcMain.handle('get-messages', async (event, channelId, limit = 50) => {
 async function getMessageReplyContent(messageId, channel) {
     try {
         const repliedMessage = await channel.messages.fetch(messageId);
-        return repliedMessage.author.tag + ': ' + repliedMessage.content;
+        return repliedMessage.author.tag + ': ' + await convertIdsToMentions(repliedMessage.content, repliedMessage.guild);
     } catch (error) {
         console.error('Error fetching reply message:', error);
         return '';
